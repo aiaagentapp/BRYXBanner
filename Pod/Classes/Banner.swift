@@ -15,7 +15,7 @@ private enum BannerState {
 ///
 /// - Top: The banner will appear at the top.
 /// - Bottom: The banner will appear at the bottom.
-public enum BannerPosition { 
+public enum BannerPosition {
     case top, bottom
 }
 
@@ -142,6 +142,13 @@ open class Banner: UIView {
         return imageView
         }()
     
+    /// The bottom padding of the banner. Default is 0
+    /// Only applicable when position is bottom
+    @objc open var bottomPadding: CGFloat = 0
+    
+    /// The left and right padding of the banner. Default is 0
+    @objc open var leftRightPadding: CGFloat = 0
+    
     private var bannerState = BannerState.hidden {
         didSet {
             if bannerState != oldValue {
@@ -157,9 +164,12 @@ open class Banner: UIView {
     /// - parameter image: The image on the left of the banner. Optional. Defaults to nil.
     /// - parameter backgroundColor: The color of the banner's background view. Defaults to `UIColor.blackColor()`.
     /// - parameter didTapBlock: An action to be called when the user taps on the banner. Optional. Defaults to `nil`.
-    @objc public required init(title: String? = nil, subtitle: String? = nil, image: UIImage? = nil, backgroundColor: UIColor = UIColor.black, didTapBlock: (() -> ())? = nil) {
+    /// - parameter bottomPadding: This increase the height constraint when position is bottom. Defaults to 0.
+    @objc public required init(title: String? = nil, subtitle: String? = nil, image: UIImage? = nil, backgroundColor: UIColor = UIColor.black, didTapBlock: (() -> ())? = nil, leftRightPadding: CGFloat = 0, bottomPadding: CGFloat = 0) {
         self.didTapBlock = didTapBlock
         self.image = image
+        self.bottomPadding = bottomPadding
+        self.leftRightPadding = leftRightPadding
         super.init(frame: CGRect.zero)
         resetShadows()
         addGestureRecognizers()
@@ -247,7 +257,11 @@ open class Banner: UIView {
         addSubview(backgroundView)
         minimumHeightConstraint = backgroundView.constraintWithAttribute(.height, .greaterThanOrEqual, to: minimumHeight)
         addConstraint(minimumHeightConstraint) // Arbitrary, but looks nice.
-        addConstraints(backgroundView.constraintsEqualToSuperview())
+        if leftRightPadding > 0 || bottomPadding > 0 {
+            addConstraints(backgroundView.constraintsEqualToCustomConstraint(leftRightPadding: leftRightPadding, bottomPadding: bottomPadding))
+        } else {
+            addConstraints(backgroundView.constraintsEqualToSuperview())
+        }
         backgroundView.backgroundColor = backgroundColor
         backgroundView.addSubview(contentView)
         labelView.translatesAutoresizingMaskIntoConstraints = false
@@ -383,6 +397,28 @@ extension UIView {
             constraints.append(self.constraintWithAttribute(.trailing, .equal, to: superview, constant: edgeInsets.right))
             constraints.append(self.constraintWithAttribute(.top, .equal, to: superview, constant: edgeInsets.top))
             constraints.append(self.constraintWithAttribute(.bottom, .equal, to: superview, constant: edgeInsets.bottom))
+        }
+        return constraints
+    }
+    
+    @objc func constraintsEqualToCustomConstraint(leftRightPadding: CGFloat, bottomPadding: CGFloat) -> [NSLayoutConstraint] {
+        self.translatesAutoresizingMaskIntoConstraints = false
+        var constraints = [NSLayoutConstraint]()
+        if let superview = self.superview {
+            let edgeInsets = UIEdgeInsets.zero
+            if leftRightPadding > 0 {
+                constraints.append(self.constraintWithAttribute(.leading, .equal, to: superview, constant: leftRightPadding))
+                constraints.append(self.constraintWithAttribute(.trailing, .equal, to: superview, constant: -leftRightPadding))
+            } else {
+                constraints.append(self.constraintWithAttribute(.leading, .equal, to: superview, constant: edgeInsets.left))
+                constraints.append(self.constraintWithAttribute(.trailing, .equal, to: superview, constant: edgeInsets.right))
+            }
+            constraints.append(self.constraintWithAttribute(.top, .equal, to: superview, constant: edgeInsets.top))
+            if bottomPadding > 0 {
+                constraints.append(self.constraintWithAttribute(.bottom, .equal, to: superview, constant: -bottomPadding))
+            } else {
+                constraints.append(self.constraintWithAttribute(.bottom, .equal, to: superview, constant: edgeInsets.bottom))
+            }
         }
         return constraints
     }
