@@ -15,7 +15,7 @@ private enum BannerState {
 ///
 /// - Top: The banner will appear at the top.
 /// - Bottom: The banner will appear at the bottom.
-public enum BannerPosition {
+public enum BannerPosition { 
     case top, bottom
 }
 
