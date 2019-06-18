@@ -221,10 +221,10 @@ open class Banner: UIView {
     }
     
     private func addGestureRecognizers() {
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action:  #selector(Banner.didTap(_:))))
+        backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action:  #selector(Banner.didTap(_:))))
         let swipe = UISwipeGestureRecognizer(target: self, action: #selector(Banner.didSwipe(_:)))
         swipe.direction = .up
-        addGestureRecognizer(swipe)
+        backgroundView.addGestureRecognizer(swipe)
     }
     
     private func resetTintColor() {
