@@ -47,6 +47,8 @@ open class Banner: UIView {
     private let contentView = UIView()
     private let labelView = UIView()
     private let backgroundView = UIView()
+    private var bottomPadding: CGFloat = 0
+    private var leftRightPadding: CGFloat = 0
     
     /// How long the slide down animation should last.
     @objc open var animationDuration: TimeInterval = 0.4
@@ -113,6 +115,9 @@ open class Banner: UIView {
         }
     }
     
+    // Whether or not the banner should allow external touches. Defaults to 'false'
+    @objc open var allowExternalTouches: Bool = false
+    
     /// The label that displays the banner's title.
     @objc public let titleLabel: UILabel = {
         let label = UILabel()
@@ -142,12 +147,7 @@ open class Banner: UIView {
         return imageView
         }()
     
-    /// The bottom padding of the banner. Default is 0
-    /// Only applicable when position is bottom
-    @objc open var bottomPadding: CGFloat = 0
     
-    /// The left and right padding of the banner. Default is 0
-    @objc open var leftRightPadding: CGFloat = 0
     
     private var bannerState = BannerState.hidden {
         didSet {
@@ -364,6 +364,21 @@ open class Banner: UIView {
                     self.dismiss(self.adjustsStatusBarStyle ? oldStatusBarStyle : nil)
                 }
         })
+    }
+    
+    // Allow subview to click through
+    override open func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        super.point(inside: point, with: event)
+        if !allowExternalTouches {
+            return true
+        }
+        
+        for subview in subviews as [UIView] {
+            if !subview.isHidden && subview.alpha > 0 && subview.isUserInteractionEnabled && subview.point(inside: convert(point, to: subview), with: event) {
+                return true
+            }
+        }
+        return false
     }
   
     /// Dismisses the banner.
